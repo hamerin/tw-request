@@ -1,1 +1,1 @@
-web: gunicorn tw_request.__init__ --log-file -
+web: gunicorn tw_request.__init__:app --log-file -
