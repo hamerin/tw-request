@@ -1,1 +1,1 @@
-web: gunicorn tw_request:app
+web: gunicorn tw_request.__init__
