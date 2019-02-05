@@ -132,27 +132,28 @@ def me():
 def me_post():
   global_username=request.cookies.get('userID')
   target_id=str(request.form.get('requests'))
-  if not target_id:
+  if target_id=='None':
     return me()
-  target_req=db[global_username].find_one({"_id": ObjectId(target_id)})
-  _isSecret=target_req["isSecret"]
-  _isAnonymous=target_req["isAnonymous"]
-  author_id=target_req["author_id"]
-  action=str(request.form.get('request_action'))
-  _isSharing=bool(request.form.get('isSharing'))
-  target_req.pop('_id', None)
-  if action=="accept":
-    target_req['status']='Complete'
-    db[global_username].replace_one({'_id': ObjectId(target_id)}, target_req)
   else:
-    target_req['status']='Denied'
-    db[global_username].replace_one({'_id': ObjectId(target_id)}, target_req)
-  _post_text=("누군가" if _isAnonymous else ("@"+author_id))+" 의 리퀘스트가 "+("완료되었어요!!" if action=="accept" else "삭제되었어요 ㅜㅜ")
-  print(str(_isSharing))
-  print(_post_text)
-  if not _isSharing:
-    twitter.post("statuses/update.json?status={text}".format(text=quote(_post_text, safe='')))
-  return me()
+    target_req=db[global_username].find_one({"_id": ObjectId(target_id)})
+    _isSecret=target_req["isSecret"]
+    _isAnonymous=target_req["isAnonymous"]
+    author_id=target_req["author_id"]
+    action=str(request.form.get('request_action'))
+    _isSharing=bool(request.form.get('isSharing'))
+    target_req.pop('_id', None)
+    if action=="accept":
+      target_req['status']='Complete'
+      db[global_username].replace_one({'_id': ObjectId(target_id)}, target_req)
+    else:
+      target_req['status']='Denied'
+      db[global_username].replace_one({'_id': ObjectId(target_id)}, target_req)
+    _post_text=("누군가" if _isAnonymous else ("@"+author_id))+" 의 리퀘스트가 "+("완료되었어요!!" if action=="accept" else "삭제되었어요 ㅜㅜ")
+    print(str(_isSharing))
+    print(_post_text)
+    if not _isSharing:
+      twitter.post("statuses/update.json?status={text}".format(text=quote(_post_text, safe='')))
+    return me()
 
 @app.route("/generic.html")
 def generic():
