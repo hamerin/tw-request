@@ -15,8 +15,67 @@
 		<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/noscript.css') }}" /></noscript>
 
 	<style>
+		@media screen and (max-width: 1280px) {
+
+			#footer {
+				padding: 4em 4em 2em 4em ;
+				margin-left: -1em;
+			}
+
+		}
+
+		@media screen and (max-width: 980px) {
+
+			#footer {
+				padding: 4em 3em 2em 3em ;
+				display: block;
+				margin: 0 0 3em 0;
+				width: 100%;
+			}
+
+			#footer > * {
+				width: 100%;
+				margin-left: 0;
+				margin-bottom: 3em;
+			}
+
+			#footer .copyright {
+				text-align: left;
+			}
+
+		}
+
+		@media screen and (max-width: 736px) {
+
+			#footer {
+				padding: 3em 2em 1em 2em ;
+				margin-left: 0 !important;
+			}
+
+		}
+
+		@media screen and (max-width: 480px) {
+
+			#footer {
+				padding: 3em 1.5em 1em 1.5em ;
+				margin-left: 0 !important;
+			}
+
+		}
+
+		@media screen and (max-width: 480px) {
+
+			#footer {
+				padding: 2.5em 1em 0.5em 1em ;
+				margin-left: 0 !important;
+			}
+
+		}
 		#footer {
 			margin-left: -1em;
+		}
+		#footer>p {
+			text-align: center !important;
 		}
 	</style>
 </head>
@@ -30,19 +89,26 @@
 		<header id="header" class="alt">
 			<span class="logo"><img src="{{ url_for('static', filename='images/logo.svg') }}" alt="" /></span>
 			<h1>tw-request</h1>
-			<p>트위터와 연동되는 리퀘박스<br>
-				개발자 트위터: <a href="https://twitter.com/_himyu">@_himyu</a></p>
+			<p>
+				트위터와 연동되는 리퀘박스<br>
+				개발자 트위터: <a href="https://twitter.com/_himyu">@_himyu</a>
+			</p>
 		</header>
-
+		<nav id="nav">
+			<ul>
+				<li><a href="#cta" class="active">시작하기</a></li>
+				<li><a href="#first">기능</a></li>
+			</ul>
+		</nav>
 		<!-- Main -->
 		<div id="main">
-
 			<!-- Get Started -->
 			<section id="cta" class="main special">
 				<header class="major">
-					<h2>리퀘박스</h2>	
-					<p>트위터 유저들끼리만 신청할 수 있는 리퀘박스에요.<br />
-						버그나 있었으면 바라는 기능 등은 개발자에게 리퀘해서 전해주세요!! :D</p>
+					<h2>시작하기</h2>
+					<p>
+						트위터 유저들끼리만 신청할 수 있는 리퀘박스에요. :D
+					</p>
 				</header>
 				<form action="{{ url_for('login') }}" method="POST">
 					<footer class="major">
@@ -52,7 +118,34 @@
 					</footer>
 				</form>
 			</section>
-
+			<section id="first" class="main special">
+				<header class="major">
+					<h2>기능</h2>
+				</header>
+				<ul class="features">
+					<li>
+						<span class="icon major style1 fa-html5"></span>
+						<h3>HTML5</h3>
+						<p>
+							HTML5(템플릿)을 써서 만들어졌어요!
+						</p>
+					</li>
+					<li>
+						<span class="icon major style3 fa-github"></span>
+						<h3>Open-Source</h3>
+						<p>
+							고인물 님들!! <a href="https://github.com/himyu/tw-request">이 레포지토리</a>에서 도움을 주세요!
+						</p>
+					</li>
+					<li>
+						<span class="icon major style5 fa-bug"></span>
+						<h3>빠른 버그 수정</h3>
+						<p>
+							개발자의 트위터에 연락하거나 여기에 리퀘하면 버그 수정이 빨리 돼요!!
+						</p>
+					</li>
+				</ul>
+			</section>
 		</div>
 
 		<!-- Footer -->

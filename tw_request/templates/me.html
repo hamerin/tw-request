@@ -1,0 +1,143 @@
+<!DOCTYPE HTML>
+<!--
+	Stellar by HTML5 UP
+	html5up.net | @ajlkn
+	Free for personal and commercial use under the CCA 3.0 license (html5up.net/license)
+-->
+<html>
+
+<head>
+	<title>나의 리퀘박스</title>
+	<meta charset="utf-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
+	<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/main.css') }}" />
+	<noscript>
+		<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/noscript.css') }}" /></noscript>
+	<style>
+		#footer>p {
+			text-align: center !important;
+		}
+		#header>.image {
+			display: inline-block;
+			margin: auto;
+			padding: 0.65em;
+			border-radius: 100%;
+			border: none;
+			background:transparent;
+		}
+		.image>img {
+			display:block;
+			border-radius: 100%;
+			width:12em;
+		}
+	</style>
+</head>
+
+<body class="is-preload">
+
+	<!-- Wrapper -->
+	<div id="wrapper">
+
+		<!-- Header -->
+		<header id="header">
+			<span class="image">
+				<img src="{{ photoURL }}" alt="">
+			</span>
+			<h1>{{ name }}</h1>
+			<p style="font-size: 1.5em"><a href="https://twitter.com/{{ id }}">@{{ id }}</a></p>
+			<p>{{ description }}</p>
+		</header>
+		<nav id="nav">
+			<ul>
+				<li><a href="#form" class="active">리퀘스트 처리</a></li>
+				<li><a href="#request-get">받은 리퀘스트</a></li>
+				<li><a href="#request-complete">완료한 리퀘스트</a></li>
+			</ul>
+		</nav>
+		<!-- Main -->
+		<div id="main">
+
+
+
+			<!-- Content -->
+			<section id="form" class="main">
+				<h2>리퀘스트 관리</h2>
+				<form method="post" action="">
+					<div class="row gtr-uniform">
+						<div class="col-12">
+							<select name="requests" id="requests">
+								{% for req in pendingReq_l_displayed %}
+								<option value="{{ req['_id'] }}">{{ req["message"] }}</option>
+								{% endfor %}
+							</select>
+						</div>
+						<div class="col-6 col-12-small">
+							<input type="radio" id="accept" value="accept" name="request_action" checked>
+							<label for="accept">완료하기</label>
+						</div>
+						<div class="col-6 col-12-small">
+							<input type="radio" id="discard" value="discard" name="request_action">
+							<label for="discard">삭제하기</label>
+						</div>
+						<div class="col-6 col-12-small">
+							<input type="checkbox" id="isSharing" name="isSharing" disabled>
+							<label for="isSharing">트위터에 공유하지 않기</label>
+						</div>
+						<div class="col-12">
+							<ul class="actions">
+								<li><input type="submit" value="리퀘 처리!" class="primary"></li>
+								<li><input type="reset" value="리셋"></li>
+							</ul>
+						</div>
+					</div>
+				</form>
+			</section>
+			<section id="request-get" class="main">
+					<h2>받은 리퀘스트</h2>
+					<hr>
+					{% for req in pendingReq_l %}
+					<h2>{{ req["message"] }} {% if req["isSecret"] %}<span class="icon fa-lock"></span>{% endif %}</h2>
+					<p>{{ req["timestamp"][:-7] }}에 {% if not req.isAnonymous %}<a href="https://twitter.com/{{ req['author_id'] }}">{{ req["author"] }}</a>님이 리퀘스트함{% endif %}</p>
+					<hr>
+					{% endfor %}
+				</section>
+				<section id="request-complete" class="main">
+					<h2>완료한 리퀘스트</h2>
+					<hr>
+					{% for req in completeReq_l %}
+					<h2>{{ req["message"] }} {% if req["isSecret"] %}<span class="icon fa-lock"></span>{% endif %}</h2>
+					<p>{{ req["timestamp"][:-7] }}에 {% if not req.isAnonymous %}<a href="https://twitter.com/{{ req['author_id'] }}">{{ req["author"] }}</a>님이 리퀘스트함{% endif %}</p>
+					<hr>
+					{% endfor %}
+				</section>
+		</div>
+
+		<!-- Footer -->
+		<footer id="footer">
+			<p class="copyright">&copy; <a href="https://github.com/himyu">himyu</a>. Design: <a href="https://html5up.net">HTML5
+					UP</a>.</p>
+		</footer>
+
+	</div>
+
+	<!-- Scripts -->
+	<script src="{{ url_for('static', filename='assets/js/jquery.min.js') }}"></script>
+	<script src="{{ url_for('static', filename='assets/js/jquery.scrollex.min.js') }}"></script>
+	<script src="{{ url_for('static', filename='assets/js/jquery.scrolly.min.js') }}"></script>
+	<script src="{{ url_for('static', filename='assets/js/browser.min.js') }}"></script>
+	<script src="{{ url_for('static', filename='assets/js/breakpoints.min.js') }}"></script>
+	<script src="{{ url_for('static', filename='assets/js/util.js') }}">	</script>
+	<script src="{{ url_for('static', filename='assets/js/main.js') }}"></script>
+	<script>
+		$('#discard').click(function() {
+			$('#isSharing').removeAttr("disabled");
+			$('#isSharing').prop("checked", true);
+		});
+		$('#accept').click(function() {
+			$('#isSharing').attr("disabled","");
+			$('#isSharing').prop("checked", false);
+		});
+	</script>
+</body>
+
+</html>
