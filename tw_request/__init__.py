@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, render_template, request, make_response
+from flask import Flask, redirect, url_for, render_template, request, make_response, session
 from flask_dance.contrib.twitter import make_twitter_blueprint, twitter
 from flask_login import logout_user
 from bson.objectid import ObjectId
@@ -10,9 +10,11 @@ import copy
 
 app = Flask(__name__)
 app.secret_key = "supersekrit"
+_api_key="G4RfuppI0rf861TDF0Z8pKA4L"
+_api_secret="A0gNyvH3R2441xR3IF5mWqHi7nKkt6ueZKmshp6aP3pJT8ZTSm"
 blueprint = make_twitter_blueprint(
-    api_key="G4RfuppI0rf861TDF0Z8pKA4L",
-    api_secret="A0gNyvH3R2441xR3IF5mWqHi7nKkt6ueZKmshp6aP3pJT8ZTSm",
+    api_key=_api_key,
+    api_secret=_api_secret,
 )
 app.register_blueprint(blueprint, url_prefix="/login")
 
@@ -52,8 +54,15 @@ def login():
 
 @app.route("/logout")
 def logout():
-  logout_user()
-  return redirect(url_for("intro"))
+  if twitter.authorized:
+    twitter.post("https://api.twitter.com/oauth/invalidate_token?access_token={access_token}&access_token_secret={access_token_secret}".format(access_token=_api_key, access_token_secret=_api_secret))
+    resp=redirect(url_for("intro"))
+    resp.set_cookie('userID', '', expires=0)
+    del app.blueprints['twitter'].token
+    session.clear()
+    return resp
+  else:  
+    return redirect(url_for("intro"))
 
 @app.route("/user/<username>")
 def reveal_user(username):
@@ -123,6 +132,8 @@ def me():
 def me_post():
   global_username=request.cookies.get('userID')
   target_id=str(request.form.get('requests'))
+  if not target_id:
+    return me()
   target_req=db[global_username].find_one({"_id": ObjectId(target_id)})
   _isSecret=target_req["isSecret"]
   _isAnonymous=target_req["isAnonymous"]
