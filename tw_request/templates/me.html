@@ -103,7 +103,7 @@
 				<hr>
 				{% for req in pendingReq_l %}
 				<h2>{{ req["message"] }} {% if req["isSecret"] %}<span class="icon fa-lock"></span>{% endif %}</h2>
-				<p>{{ req["timestamp"][:-7] }}에 {% if not req.isAnonymous %}<a
+				<p>{{ req["timestamp"][:-7] }}{% if not req.isAnonymous %}에 <a
 						href="https://twitter.com/{{ req['author_id'] }}">{{ req["author"] }}</a>님이 리퀘스트함{% endif %}</p>
 				<hr>
 				{% endfor %}
