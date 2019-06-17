@@ -1,3 +1,4 @@
 # tw-request
 
-[Access URL](tw-request.herokuapp.com)
+The request box only for twitter users
+[Access URL](https://tw-request.herokuapp.com)
