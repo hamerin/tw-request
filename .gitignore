@@ -1,0 +1,5 @@
+__pycache__
+tw_request/__pycache__
+pip-selfcheck.json
+.env
+.vscode

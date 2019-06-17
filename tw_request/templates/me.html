@@ -17,18 +17,24 @@
 		#footer>p {
 			text-align: center !important;
 		}
+
 		#header>.image {
 			display: inline-block;
 			margin: auto;
 			padding: 0.65em;
 			border-radius: 100%;
 			border: none;
-			background:transparent;
+			background: transparent;
 		}
+
 		.image>img {
-			display:block;
+			display: block;
 			border-radius: 100%;
-			width:12em;
+			width: 12em;
+		}
+
+		label.disabled {
+			opacity: 0.3;
 		}
 	</style>
 </head>
@@ -79,9 +85,9 @@
 							<input type="radio" id="discard" value="discard" name="request_action">
 							<label for="discard">삭제하기</label>
 						</div>
-						<div class="col-6 col-12-small">
+						<div class="col-6 col-12-small disabled">
 							<input type="checkbox" id="isSharing" name="isSharing" disabled>
-							<label for="isSharing">트위터에 공유하지 않기</label>
+							<label for="isSharing" class="disabled">트위터에 공유하지 않기</label>
 						</div>
 						<div class="col-12">
 							<ul class="actions">
@@ -93,29 +99,34 @@
 				</form>
 			</section>
 			<section id="request-get" class="main">
-					<h2>받은 리퀘스트</h2>
-					<hr>
-					{% for req in pendingReq_l %}
-					<h2>{{ req["message"] }} {% if req["isSecret"] %}<span class="icon fa-lock"></span>{% endif %}</h2>
-					<p>{{ req["timestamp"][:-7] }}에 {% if not req.isAnonymous %}<a href="https://twitter.com/{{ req['author_id'] }}">{{ req["author"] }}</a>님이 리퀘스트함{% endif %}</p>
-					<hr>
-					{% endfor %}
-				</section>
-				<section id="request-complete" class="main">
-					<h2>완료한 리퀘스트</h2>
-					<hr>
-					{% for req in completeReq_l %}
-					<h2>{{ req["message"] }} {% if req["isSecret"] %}<span class="icon fa-lock"></span>{% endif %}</h2>
-					<p>{{ req["timestamp"][:-7] }}에 {% if not req.isAnonymous %}<a href="https://twitter.com/{{ req['author_id'] }}">{{ req["author"] }}</a>님이 리퀘스트함{% endif %}</p>
-					<hr>
-					{% endfor %}
-				</section>
+				<h2>받은 리퀘스트</h2>
+				<hr>
+				{% for req in pendingReq_l %}
+				<h2>{{ req["message"] }} {% if req["isSecret"] %}<span class="icon fa-lock"></span>{% endif %}</h2>
+				<p>{{ req["timestamp"][:-7] }}에 {% if not req.isAnonymous %}<a
+						href="https://twitter.com/{{ req['author_id'] }}">{{ req["author"] }}</a>님이 리퀘스트함{% endif %}</p>
+				<hr>
+				{% endfor %}
+			</section>
+			<section id="request-complete" class="main">
+				<h2>완료한 리퀘스트</h2>
+				<hr>
+				{% for req in completeReq_l %}
+				<h2>{{ req["message"] }} {% if req["isSecret"] %}<span class="icon fa-lock"></span>{% endif %}</h2>
+				<p>{{ req["timestamp"][:-7] }}에 {% if not req.isAnonymous %}<a
+						href="https://twitter.com/{{ req['author_id'] }}">{{ req["author"] }}</a>님이 리퀘스트함{% endif %}</p>
+				<hr>
+				{% endfor %}
+			</section>
 		</div>
 
 		<!-- Footer -->
 		<footer id="footer">
-			<p class="copyright">&copy; <a href="https://github.com/himyu">himyu</a>. Design: <a href="https://html5up.net">HTML5
-					UP</a>.</p>
+			<p class="copyright">
+				&copy; <a href="https://github.com/himyu">himyu</a>. Design: <a href="https://html5up.net">HTML5
+					UP</a>.<br>
+				Special Thanks to <a href="https://twitter.com/MapperScan">@MapperScan</a>
+			</p>
 		</footer>
 
 	</div>
@@ -129,12 +140,14 @@
 	<script src="{{ url_for('static', filename='assets/js/util.js') }}">	</script>
 	<script src="{{ url_for('static', filename='assets/js/main.js') }}"></script>
 	<script>
-		$('#discard').click(function() {
+		$('#discard').click(function () {
+			$('#isSharing').closest("div").children('label').removeClass("disabled");
 			$('#isSharing').removeAttr("disabled");
 			$('#isSharing').prop("checked", true);
 		});
-		$('#accept').click(function() {
-			$('#isSharing').attr("disabled","");
+		$('#accept').click(function () {
+			$('#isSharing').closest("div").children('label').addClass("disabled");
+			$('#isSharing').attr("disabled", "");
 			$('#isSharing').prop("checked", false);
 		});
 	</script>

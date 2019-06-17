@@ -17,18 +17,20 @@
 		#footer>p {
 			text-align: center !important;
 		}
+
 		#header>.image {
 			display: inline-block;
 			margin: auto;
 			padding: 0.65em;
 			border-radius: 100%;
 			border: none;
-			background:transparent;
+			background: transparent;
 		}
+
 		.image>img {
-			display:block;
+			display: block;
 			border-radius: 100%;
-			width:12em;
+			width: 12em;
 		}
 	</style>
 </head>
@@ -90,7 +92,8 @@
 				<hr>
 				{% for req in pendingReq_l %}
 				<h2>{% if req["isSecret"] %}<span class="icon fa-lock"></span>{% else %}{{ req["message"] }}{% endif %}</h2>
-				<p>{{ req["timestamp"][:-7] }}에 {% if not req.isAnonymous %}<a href="https://twitter.com/{{ req['author_id'] }}">{{ req["author"] }}</a>님이 리퀘스트함{% endif %}</p>
+				<p>{{ req["timestamp"][:-7] }}에 {% if not req.isAnonymous %}<a
+						href="https://twitter.com/{{ req['author_id'] }}">{{ req["author"] }}</a>님이 리퀘스트함{% endif %}</p>
 				<hr>
 				{% endfor %}
 			</section>
@@ -99,7 +102,8 @@
 				<hr>
 				{% for req in completeReq_l %}
 				<h2>{% if req["isSecret"] %}<span class="icon fa-lock"></span>{% else %}{{ req["message"] }}{% endif %}</h2>
-				<p>{{ req["timestamp"][:-7] }}에 {% if not req.isAnonymous %}<a href="https://twitter.com/{{ req['author_id'] }}">{{ req["author"] }}</a>님이 리퀘스트함{% endif %}</p>
+				<p>{{ req["timestamp"][:-7] }}에 {% if not req.isAnonymous %}<a
+						href="https://twitter.com/{{ req['author_id'] }}">{{ req["author"] }}</a>님이 리퀘스트함{% endif %}</p>
 				<hr>
 				{% endfor %}
 			</section>
@@ -107,8 +111,11 @@
 
 		<!-- Footer -->
 		<footer id="footer">
-			<p class="copyright">&copy; <a href="https://github.com/himyu">himyu</a>. Design: <a href="https://html5up.net">HTML5
-					UP</a>.</p>
+			<p class="copyright">
+				&copy; <a href="https://github.com/himyu">himyu</a>. Design: <a href="https://html5up.net">HTML5
+					UP</a>.<br>
+				Special Thanks to <a href="https://twitter.com/MapperScan">@MapperScan</a>
+			</p>
 		</footer>
 
 	</div>
