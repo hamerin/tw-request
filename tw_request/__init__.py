@@ -1,4 +1,4 @@
-from flask import Flask, redirect, url_for, render_template, request, make_response, session
+from flask import Flask, redirect, url_for, render_template, request, make_response, session, jsonify
 from flask_dance.contrib.twitter import make_twitter_blueprint, twitter
 from flask_login import logout_user
 from bson.objectid import ObjectId
@@ -166,13 +166,28 @@ def me():
                            pendingReq_l_displayed=pendingReq_l_displayed)
 
 
-@app.route("/me", methods=["POST"])
-def me_post():
+@app.route("/me_ajax", methods=["GET"])
+def me_ajax():
+    global_username = request.cookies.get('userID')
+
+    pendingReq_l = list(db[global_username].find({"status": "Pending"}))
+    pendingReq_l.sort(key=lambda x: x["timestamp"], reverse=True)
+
+    completeReq_l = list(db[global_username].find({"status": "Complete"}))
+    completeReq_l.sort(key=lambda x: x["timestamp"], reverse=True)
+
+    return jsonify({"html": render_template("me_ajax.html",
+                                            pendingReq_l=pendingReq_l,
+                                            completeReq_l=completeReq_l)})
+
+
+@app.route("/me_ajax", methods=["POST"])
+def me_ajax_post():
     global_username = request.cookies.get('userID')
 
     target_id = str(request.form.get('requests'))
     if target_id == 'None':
-        return me()
+        return me_ajax()
 
     else:  # If target exists
         target_req = db[global_username].find_one({"_id": ObjectId(target_id)})
@@ -199,7 +214,7 @@ def me_post():
             twitter.post(
                 "statuses/update.json?status={text}".format(text=quote(post_text, safe='')))
 
-        return me()
+        return me_ajax()
 
 
 @app.route("/elements.html")
