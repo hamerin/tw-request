@@ -11,6 +11,7 @@
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 	<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/main.css') }}" />
+	<link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
 	<noscript>
 		<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/noscript.css') }}" /></noscript>
 	<style>
@@ -61,43 +62,13 @@
 				<li><a href="#request-complete">완료한 리퀘스트</a></li>
 			</ul>
 		</nav>
+
 		<!-- Main -->
 		<div id="main">
-
-
-			<!-- Content -->
-			<section id="form" class="main">
-				<h2>리퀘스트 관리</h2>
-				<form>
-					<div class="row gtr-uniform">
-						<div class="col-12">
-							<select name="requests" id="requests">
-								{% for req in pendingReq_l_displayed %}
-								<option value="{{ req['_id'] }}">{{ req["message"] }}</option>
-								{% endfor %}
-							</select>
-						</div>
-						<div class="col-6 col-12-small">
-							<input type="radio" id="accept" value="accept" name="request_action" checked>
-							<label for="accept">완료하기</label>
-						</div>
-						<div class="col-6 col-12-small">
-							<input type="radio" id="discard" value="discard" name="request_action">
-							<label for="discard">삭제하기</label>
-						</div>
-						<div class="col-6 col-12-small disabled">
-							<input type="checkbox" id="isSharing" name="isSharing" disabled>
-							<label for="isSharing" class="disabled">트위터에 공유하지 않기</label>
-						</div>
-						<div class="col-12">
-							<ul class="actions">
-								<li><input type="button" value="리퀘 처리!" class="primary" id="submit_button"></li>
-								<li><input type="reset" value="리셋"></li>
-							</ul>
-						</div>
-
-					</div>
-				</form>
+			<section class="main">
+				<h2>
+					잠시만 기다려주세요...
+				</h2>
 			</section>
 		</div>
 
@@ -107,14 +78,9 @@
 	</div>
 
 	<!-- Scripts -->
-	<script src="{{ url_for('static', filename='assets/js/jquery.min.js') }}"></script>
-	<script src="{{ url_for('static', filename='assets/js/jquery.scrollex.min.js') }}"></script>
-	<script src="{{ url_for('static', filename='assets/js/jquery.scrolly.min.js') }}"></script>
-	<script src="{{ url_for('static', filename='assets/js/browser.min.js') }}"></script>
-	<script src="{{ url_for('static', filename='assets/js/breakpoints.min.js') }}"></script>
-	<script src="{{ url_for('static', filename='assets/js/util.js') }}">	</script>
-	<script src="{{ url_for('static', filename='assets/js/main.js') }}"></script>
+	{% include 'scripts.html' %}
 	<script src="{{ url_for('static', filename='scripts/me.js') }}"></script>
+
 </body>
 
 </html>

@@ -1,6 +1,5 @@
-from flask import Flask, redirect, url_for, render_template, request, make_response, session, jsonify
+from flask import Flask, redirect, url_for, render_template, request, make_response, session, jsonify, abort
 from flask_dance.contrib.twitter import make_twitter_blueprint, twitter
-from flask_login import logout_user
 from bson.objectid import ObjectId
 from urllib.parse import quote
 import ssl
@@ -67,46 +66,56 @@ def logout():
 
 @app.route("/user/<username>")
 def reveal_user(username):
-    if not twitter.authorized:
-        return redirect(url_for("intro"))
+    try:
+        if not twitter.authorized:
+            return redirect(url_for("intro"))
 
-    global_username = request.cookies.get('userID')
+        global_username = request.cookies.get('userID')
 
-    resp_show_userinfo = twitter.get(
-        "users/show.json?screen_name={screen_name}".format(screen_name=username))
-    assert resp_show_userinfo.ok
+        resp_show_userinfo = twitter.get(
+            "users/show.json?screen_name={screen_name}".format(screen_name=username))
+        assert resp_show_userinfo.ok
 
-    resp_view_userinfo = twitter.get(
-        "users/show.json?screen_name={screen_name}".format(screen_name=global_username))
-    assert resp_view_userinfo.ok
+        resp_view_userinfo = twitter.get(
+            "users/show.json?screen_name={screen_name}".format(screen_name=global_username))
+        assert resp_view_userinfo.ok
 
-    if username == global_username:
-        return redirect("me")
+        if username == global_username:
+            return redirect("me")
 
-    view_id = global_username
-    description = resp_show_userinfo.json()["description"]
-    photoURL = resp_show_userinfo.json(
-    )["profile_image_url_https"][:-11]+'.jpg'
-    show_name = resp_show_userinfo.json()["name"]
-    view_name = resp_view_userinfo.json()["name"]
+        view_id = global_username
+        description = resp_show_userinfo.json()["description"]
+        photoURL = resp_show_userinfo.json(
+        )["profile_image_url_https"][:-11]+'.jpg'
+        show_name = resp_show_userinfo.json()["name"]
+        view_name = resp_view_userinfo.json()["name"]
+
+        return render_template("user.html",
+                               show_id=username,
+                               show_name=show_name,
+                               view_id=view_id,
+                               view_name=view_name,
+                               description=description,
+                               photoURL=photoURL)
+
+    except AssertionError:  # If user not exists
+        abort(404)
+
+
+@app.route("/user_ajax/<username>", methods=["GET"])
+def user_ajax(username):
     pendingReq_l = list(db[username].find({"status": "Pending"}))
     pendingReq_l.sort(key=lambda x: x["timestamp"], reverse=True)
     completeReq_l = list(db[username].find({"status": "Complete"}))
     completeReq_l.sort(key=lambda x: x["timestamp"], reverse=True)
 
-    return render_template("generic.html",
-                           show_id=username,
-                           show_name=show_name,
-                           view_id=view_id,
-                           view_name=view_name,
-                           description=description,
-                           photoURL=photoURL,
-                           pendingReq_l=pendingReq_l,
-                           completeReq_l=completeReq_l)
+    return jsonify({"html": render_template("user_ajax.html",
+                                            pendingReq_l=pendingReq_l,
+                                            completeReq_l=completeReq_l)})
 
 
-@app.route("/user/<username>", methods=["POST"])
-def user_post(username):
+@app.route("/user_ajax/<username>", methods=["POST"])
+def user_ajax_post(username):
     global_username = request.cookies.get('userID')
 
     resp_view_userinfo = twitter.get(
@@ -126,7 +135,7 @@ def user_post(username):
                              "timestamp": str(datetime.datetime.now()),
                              "status": "Pending"})
 
-    return reveal_user(username)
+    return user_ajax(username)
 
 
 @app.route("/me")
@@ -144,6 +153,17 @@ def me():
     photoURL = resp_userinfo.json()["profile_image_url_https"][:-11]+'.jpg'
     name = resp_userinfo.json()["name"]
 
+    return render_template("me.html",
+                           id=global_username,
+                           name=name,
+                           photoURL=photoURL,
+                           description=description)
+
+
+@app.route("/me_ajax", methods=["GET"])
+def me_ajax():
+    global_username = request.cookies.get('userID')
+
     pendingReq_l = list(db[global_username].find({"status": "Pending"}))
     pendingReq_l.sort(key=lambda x: x["timestamp"], reverse=True)
     pendingReq_l_displayed = []
@@ -156,29 +176,10 @@ def me():
     completeReq_l = list(db[global_username].find({"status": "Complete"}))
     completeReq_l.sort(key=lambda x: x["timestamp"], reverse=True)
 
-    return render_template("me.html",
-                           id=global_username,
-                           name=name,
-                           photoURL=photoURL,
-                           description=description,
-                           pendingReq_l=pendingReq_l,
-                           completeReq_l=completeReq_l,
-                           pendingReq_l_displayed=pendingReq_l_displayed)
-
-
-@app.route("/me_ajax", methods=["GET"])
-def me_ajax():
-    global_username = request.cookies.get('userID')
-
-    pendingReq_l = list(db[global_username].find({"status": "Pending"}))
-    pendingReq_l.sort(key=lambda x: x["timestamp"], reverse=True)
-
-    completeReq_l = list(db[global_username].find({"status": "Complete"}))
-    completeReq_l.sort(key=lambda x: x["timestamp"], reverse=True)
-
     return jsonify({"html": render_template("me_ajax.html",
                                             pendingReq_l=pendingReq_l,
-                                            completeReq_l=completeReq_l)})
+                                            completeReq_l=completeReq_l,
+                                            pendingReq_l_displayed=pendingReq_l_displayed)})
 
 
 @app.route("/me_ajax", methods=["POST"])
@@ -217,6 +218,11 @@ def me_ajax_post():
         return me_ajax()
 
 
-@app.route("/elements.html")
+@app.route("/elements")
 def elements():
     return render_template('elements.html')
+
+
+@app.errorhandler(404)
+def error404(e):
+    return render_template("404.html"), 404

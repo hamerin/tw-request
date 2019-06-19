@@ -1,3 +1,37 @@
+<!-- Content -->
+<section id="form" class="main">
+  <h2>리퀘스트 관리</h2>
+  <form>
+    <div class="row gtr-uniform">
+      <div class="col-12">
+        <select name="requests" id="requests">
+          {% for req in pendingReq_l_displayed %}
+          <option value="{{ req['_id'] }}">{{ req["message"] }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-6 col-12-small">
+        <input type="radio" id="accept" value="accept" name="request_action" checked>
+        <label for="accept">완료하기</label>
+      </div>
+      <div class="col-6 col-12-small">
+        <input type="radio" id="discard" value="discard" name="request_action">
+        <label for="discard">삭제하기</label>
+      </div>
+      <div class="col-6 col-12-small disabled">
+        <input type="checkbox" id="isSharing" name="isSharing" disabled>
+        <label for="isSharing" class="disabled">트위터에 공유하지 않기</label>
+      </div>
+      <div class="col-12">
+        <ul class="actions">
+          <li><input type="button" value="리퀘 처리!" class="primary" id="submit_button"></li>
+          <li><input type="reset" value="리셋"></li>
+        </ul>
+      </div>
+    </div>
+  </form>
+</section>
+
 <section id="request-get" class="main">
   <h2>받은 리퀘스트</h2>
   <hr>
@@ -8,6 +42,7 @@
   <hr>
   {% endfor %}
 </section>
+
 <section id="request-complete" class="main">
   <h2>완료한 리퀘스트</h2>
   <hr>
@@ -18,3 +53,5 @@
   <hr>
   {% endfor %}
 </section>
+
+{% include 'search.html' %}
