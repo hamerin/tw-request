@@ -15,7 +15,7 @@ app.secret_key = "supersekrit"
 f = open('tw_request/.env', 'r')
 
 
-def getKey(): return f.readline().split('=',1)[1]
+def getKey(): return f.readline().split('=',1)[1].strip()
 
 
 api_key = getKey()
