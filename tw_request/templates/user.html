@@ -7,7 +7,7 @@
 <html>
 
 <head>
-	<title>{{ show_id }}의 리퀘박스</title>
+	<title>{{ show_scname }}의 리퀘박스</title>
 	<meta charset="utf-8" />
 	<meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no" />
 	<link rel="stylesheet" href="{{ url_for('static', filename='assets/css/main.css') }}" />
@@ -42,7 +42,7 @@
 
 <body class="is-preload">
 
-	<input type="hidden" id="userid" value="{{ show_id }}">
+	<input type="hidden" id="userid" value="{{ show_scname }}">
 
 	<!-- Wrapper -->
 	<div id="wrapper">
@@ -53,7 +53,7 @@
 				<img src="{{ photoURL }}" alt="">
 			</span>
 			<h1>{{ show_name }}</h1>
-			<p style="font-size: 1.5em"><a href="https://twitter.com/{{ show_id }}">@{{ show_id }}</a></p>
+			<p style="font-size: 1.5em"><a href="https://twitter.com/{{ show_scname }}">@{{ show_scname }}</a></p>
 			<p>{{ description }}</p>
 			<a href="{{ url_for('me') }}" class="button small" style="margin-bottom:3.125em;">내 페이지로 돌아가기</a>
 		</header>

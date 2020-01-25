@@ -20,6 +20,14 @@ $(document).ready(function () {
       success: function (result) {
         $('#main').html(result['html']);
         $('#form > form')[0].reset();
+
+        $('#submit_button').click(function () {
+          ajax_post();
+        });
+    
+        $('#search_button').click(function () {
+          window.location.replace("/user/" + $("#search_id").val())
+        });
       }
     })
   }
@@ -29,20 +37,15 @@ $(document).ready(function () {
       ajax_post();
     });
 
-    $('#discard').click(function () {
-      $('#isSharing').closest("div").children('label').removeClass("disabled");
-      $('#isSharing').removeAttr("disabled");
-      $('#isSharing').prop("checked", true);
-    });
-
-    $('#accept').click(function () {
-      $('#isSharing').closest("div").children('label').addClass("disabled");
-      $('#isSharing').attr("disabled", "");
-      $('#isSharing').prop("checked", false);
-    });
-
     $('#search_button').click(function () {
       window.location.replace("/user/" + $("#search_id").val())
+    });
+
+    $('#search_id').keyup(function (e) {
+      e.preventDefault();
+      if(e.keyCode == 13) {
+        window.location.replace("/user/" + $("#search_id").val())
+      }
     });
   });
 });

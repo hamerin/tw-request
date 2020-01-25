@@ -1,0 +1,56 @@
+name: tw-request
+channels:
+  - conda-forge
+  - defaults
+dependencies:
+  - _libgcc_mutex=0.1=main
+  - astroid=2.3.1=py37_0
+  - autopep8=1.4.4=py_0
+  - ca-certificates=2019.11.28=hecc5488_0
+  - certifi=2019.11.28=py37_0
+  - click=7.0=py37_0
+  - flask=1.1.1=py_0
+  - icu=64.2=he1b5a44_1
+  - isort=4.3.21=py37_0
+  - itsdangerous=1.1.0=py37_0
+  - jansson=2.11=h516909a_1001
+  - jinja2=2.10.1=py37_0
+  - lazy-object-proxy=1.4.2=py37h7b6447c_0
+  - libedit=3.1.20181209=hc058e9b_0
+  - libffi=3.2.1=hd88cf55_4
+  - libgcc-ng=9.1.0=hdf63c60_0
+  - libiconv=1.15=h516909a_1005
+  - libstdcxx-ng=9.1.0=hdf63c60_0
+  - libxml2=2.9.10=hee79883_0
+  - markupsafe=1.1.1=py37h7b6447c_0
+  - mccabe=0.6.1=py37_1
+  - ncurses=6.1=he6710b0_1
+  - openssl=1.1.1d=h516909a_0
+  - pcre=8.43=he1b5a44_0
+  - pip=19.2.3=py37_0
+  - pycodestyle=2.5.0=py37_0
+  - pylint=2.4.2=py37_0
+  - pymongo=3.9.0=py37he6710b0_0
+  - python=3.7.4=h265db76_1
+  - readline=7.0=h7b6447c_5
+  - setuptools=41.2.0=py37_0
+  - sqlite=3.30.0=h7b6447c_0
+  - tk=8.6.8=hbc83047_0
+  - uwsgi=2.0.18=py37h79bd928_3
+  - werkzeug=0.16.0=py_0
+  - wheel=0.33.6=py37_0
+  - wrapt=1.11.2=py37h7b6447c_0
+  - xz=5.2.4=h14c3975_4
+  - yaml=0.1.7=h14c3975_1001
+  - zlib=1.2.11=h7b6447c_3
+  - pip:
+    - chardet==3.0.4
+    - flask-dance==2.2.0
+    - idna==2.8
+    - oauthlib==3.1.0
+    - requests==2.22.0
+    - requests-oauthlib==1.2.0
+    - six==1.12.0
+    - urllib3==1.25.6
+    - urlobject==2.4.3
+prefix: /home/himyu/anaconda3/envs/tw-request

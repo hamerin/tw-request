@@ -36,4 +36,11 @@ $(document).ready(function () {
   $('#search_button').click(function () {
     window.location.replace("/user/" + $("#search_id").val())
   });
+
+  $('#search_id').keyup(function (e) {
+    e.preventDefault();
+    if(e.keyCode == 13) {
+      window.location.replace("/user/" + $("#search_id").val())
+    }
+  });
 });

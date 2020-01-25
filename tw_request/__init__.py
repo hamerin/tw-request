@@ -5,212 +5,281 @@ from urllib.parse import quote
 import ssl
 import pymongo
 import datetime
+import time
 import copy
 import os
 
 app = Flask(__name__)
 app.secret_key = "supersekrit"
-_api_key = os.environ['TWITTER_API_KEY']
-_api_secret = os.environ['TWITTER_API_SECRET']
-blueprint = make_twitter_blueprint(
-    api_key=_api_key,
-    api_secret=_api_secret,
-)
+
+f = open('tw_request/.env', 'r')
+
+
+def getKey(): return f.readline().split('=',1)[1]
+
+
+api_key = getKey()
+api_secret = getKey()
+blueprint = make_twitter_blueprint(api_key=api_key, api_secret=api_secret)
 app.register_blueprint(blueprint, url_prefix="/login")
 
-client = pymongo.MongoClient(
-    os.environ['MONGODB_URL'], connect=False, ssl_cert_reqs=ssl.CERT_NONE)
-db = client.test
+client = pymongo.MongoClient(getKey(),
+                             connect=False,
+                             ssl_cert_reqs=ssl.CERT_NONE)
+db = client.main
+cache = client.cache
+
+f.close()
+
+
+def authorization_required(fun):
+    def decorated(*args):
+        if not twitter.authorized:
+            abort(401)
+        return fun(*args)
+    return decorated
+
+
+def getinfo_id(id) -> dict:
+    try:
+        ret = cache['twd'].find_one({"id_str": str(id)})
+        isCreated = bool(ret)
+
+        if not ret or time.time() - ret['_timestamp'] > 86400:
+            ret = twitter.get(
+                f"users/show.json?user_id={id}").json()
+            ret['profile_image_url_https'] = ret['profile_image_url_https'].replace(
+                '_normal', '')
+            ret['_timestamp'] = time.time()
+
+        if isCreated:
+            cache['twd'].update({'_id': ObjectId(ret['_id'])}, {'$set': ret})
+        else:
+            cache['twd'].insert_one(ret)
+        return ret
+    except:
+        return {}
+
+
+def getinfo_name(name) -> dict:
+    try:
+        ret = cache['twd'].find_one({"screen_name": name})
+        isCreated = bool(ret)
+
+        if not ret or time.time() - ret['_timestamp'] > 86400:
+            ret = twitter.get(
+                f"users/show.json?screen_name={name}").json()
+            ret['profile_image_url_https'] = ret['profile_image_url_https'].replace(
+                '_normal', '')
+            ret['_timestamp'] = time.time()
+
+        if isCreated:
+            cache['twd'].update({'_id': ObjectId(ret['_id'])}, {'$set': ret})
+        else:
+            cache['twd'].insert_one(ret)
+        return ret
+    except:
+        return {}
+
+
+@authorization_required
+def getinfo() -> dict:
+    try:
+        userinfo = dict()
+        if 'userid' in session:
+            userid = session['userid']
+            userinfo = getinfo_id(userid)
+        else:
+            account = twitter.get("account/verify_credentials.json")
+            assert account.ok
+
+            userinfo = getinfo_id(account.json()["id"])
+
+        assert userinfo
+        return userinfo
+    except AssertionError:
+        abort(500)
 
 
 @app.route("/")
 def intro():
     if twitter.authorized:
-        if not request.cookies.get('userID'):
-            resp_settings = twitter.get("account/settings.json")
-            assert resp_settings.ok
+        userinfo = getinfo()
+        if not 'userid' in session:
+            session['userid'] = userinfo["id"]
 
-            user = resp_settings.json()["screen_name"]
+        return redirect(f"/user/{userinfo['screen_name']}")
 
-            resp = make_response(
-                redirect("/user/{screen_name}".format(screen_name=user)))
-            resp.set_cookie('userID', user)
-            return resp
-        else:
-            return redirect("/user/{screen_name}".format(screen_name=request.cookies.get('userID')))
-    else:  # Not Authorized
+    else:
         return render_template('index.html')
 
 
-@app.route("/login", methods=['POST'])
+@app.route("/login")
 def login():
-    if request.method == "POST":
-        return redirect(url_for("twitter.login"))
+    return redirect(url_for("twitter.login"))
 
 
+@authorization_required
 @app.route("/logout")
 def logout():
-    if twitter.authorized:
-        twitter.post("https://api.twitter.com/oauth/invalidate_token?access_token={access_token}&access_token_secret={access_token_secret}".format(
-            access_token=_api_key, access_token_secret=_api_secret))
-        del app.blueprints['twitter'].token
+    invaildate_url = f"https://api.twitter.com/oauth/invalidate_token?access_token={api_key}&access_token_secret={api_secret}"
+    twitter.post(invaildate_url)
+    del app.blueprints["twitter"].token
+    session.clear()
 
-        session.clear()
-
-        resp = redirect(url_for("intro"))
-        resp.set_cookie('userID', '', expires=0)
-        return resp
-    else:
-        return redirect(url_for("intro"))
+    return redirect(url_for("intro"))
 
 
+@authorization_required
 @app.route("/user/<username>")
 def reveal_user(username):
     try:
-        if not twitter.authorized:
-            return redirect(url_for("intro"))
+        viewUser = getinfo()
+        showUser = getinfo_name(username)
 
-        global_username = request.cookies.get('userID')
-
-        resp_show_userinfo = twitter.get(
-            "users/show.json?screen_name={screen_name}".format(screen_name=username))
-        assert resp_show_userinfo.ok
-
-        resp_view_userinfo = twitter.get(
-            "users/show.json?screen_name={screen_name}".format(screen_name=global_username))
-        assert resp_view_userinfo.ok
-
-        if username == global_username:
-            return redirect("me")
-
-        view_id = global_username
-        description = resp_show_userinfo.json()["description"]
-        photoURL = resp_show_userinfo.json(
-        )["profile_image_url_https"][:-11]+'.jpg'
-        show_name = resp_show_userinfo.json()["name"]
-        view_name = resp_view_userinfo.json()["name"]
+        if viewUser['id'] == showUser['id']:
+            return redirect("/me")
 
         return render_template("user.html",
-                               show_id=username,
-                               show_name=show_name,
-                               view_id=view_id,
-                               view_name=view_name,
-                               description=description,
-                               photoURL=photoURL)
+                               show_scname=showUser['screen_name'],
+                               show_name=showUser['name'],
+                               description=showUser['description'],
+                               photoURL=showUser['profile_image_url_https'],
+                               view_scname=viewUser['screen_name'],
+                               view_name=viewUser['name'])
 
     except AssertionError:  # If user not exists
-        abort(404)
+        abort(400)
 
 
+@authorization_required
 @app.route("/user_ajax/<username>", methods=["GET"])
 def user_ajax(username):
-    pendingReq_l = list(db[username].find({"status": "Pending"}))
-    pendingReq_l.sort(key=lambda x: x["timestamp"], reverse=True)
-    completeReq_l = list(db[username].find({"status": "Complete"}))
-    completeReq_l.sort(key=lambda x: x["timestamp"], reverse=True)
+    showUser = getinfo_name(username)
+
+    pendingRequests = list(db[showUser['id_str']].find({"status": "Pending"}))
+    pendingRequests.sort(key=lambda x: x["timestamp"], reverse=True)
+    for req in pendingRequests:
+        authorUser = getinfo_id(req['author_id'])
+        req['author_scname'] = authorUser['screen_name']
+        req['author_name'] = authorUser['name']
+
+    completeRequests = list(
+        db[showUser['id_str']].find({"status": "Complete"}))
+    completeRequests.sort(key=lambda x: x["timestamp"], reverse=True)
+    for req in completeRequests:
+        authorUser = getinfo_id(req['author_id'])
+        req['author_scname'] = authorUser['screen_name']
+        req['author_name'] = authorUser['name']
 
     return jsonify({"html": render_template("user_ajax.html",
-                                            pendingReq_l=pendingReq_l,
-                                            completeReq_l=completeReq_l)})
+                                            pendingRequests=pendingRequests,
+                                            completeRequests=completeRequests)})
 
 
+@authorization_required
 @app.route("/user_ajax/<username>", methods=["POST"])
 def user_ajax_post(username):
-    global_username = request.cookies.get('userID')
+    viewUser = getinfo()
+    showUser = getinfo_name(username)
 
-    resp_view_userinfo = twitter.get(
-        "users/show.json?screen_name={screen_name}".format(screen_name=global_username))
-    assert resp_view_userinfo.ok
-
-    view_name = resp_view_userinfo.json()["name"]
     message = str(request.form.get('message'))
     isSecret = bool(request.form.get('isSecret'))
     isAnonymous = bool(request.form.get('isAnonymous'))
 
-    db[username].insert_one({"author": view_name,
-                             "author_id": global_username,
-                             "message": message,
-                             "isSecret": isSecret,
-                             "isAnonymous": isAnonymous,
-                             "timestamp": str(datetime.datetime.now()),
-                             "status": "Pending"})
+    db[showUser['id_str']].insert_one({"author_id": viewUser["id_str"],
+                                       "message": message,
+                                       "isSecret": isSecret,
+                                       "isAnonymous": isAnonymous,
+                                       "timestamp": str(datetime.datetime.now()),
+                                       "status": "Pending"})
 
     return user_ajax(username)
 
 
+@authorization_required
 @app.route("/me")
 def me():
-    if not twitter.authorized:
-        return redirect(url_for("intro"))
-
-    global_username = request.cookies.get('userID')
-
-    resp_userinfo = twitter.get(
-        "users/show.json?screen_name={screen_name}".format(screen_name=global_username))
-    assert resp_userinfo.ok
-
-    description = resp_userinfo.json()["description"]
-    photoURL = resp_userinfo.json()["profile_image_url_https"][:-11]+'.jpg'
-    name = resp_userinfo.json()["name"]
+    viewUser = getinfo()
 
     return render_template("me.html",
-                           id=global_username,
-                           name=name,
-                           photoURL=photoURL,
-                           description=description)
+                           scname=viewUser['screen_name'],
+                           name=viewUser['name'],
+                           photoURL=viewUser['profile_image_url_https'],
+                           description=viewUser['description'])
 
 
+@authorization_required
 @app.route("/me_ajax", methods=["GET"])
 def me_ajax():
-    global_username = request.cookies.get('userID')
+    viewUser = getinfo()
 
-    pendingReq_l = list(db[global_username].find({"status": "Pending"}))
-    pendingReq_l.sort(key=lambda x: x["timestamp"], reverse=True)
-    pendingReq_l_displayed = []
-    for req in pendingReq_l:
+    pendingRequests = list(db[viewUser['id_str']].find({"status": "Pending"}))
+    pendingRequests.sort(key=lambda x: x["timestamp"], reverse=True)
+    for req in pendingRequests:
+        authorUser = getinfo_id(req['author_id'])
+        req['author_scname'] = authorUser['screen_name']
+        req['author_name'] = authorUser['name']
+
+    pendingRequests_disp = []
+    for req in pendingRequests:
         rq = copy.deepcopy(req)
         if len(req["message"]) > 30:
             rq["message"] = rq["message"][:27]+'...'
-        pendingReq_l_displayed.append(rq)
+        pendingRequests_disp.append(rq)
 
-    completeReq_l = list(db[global_username].find({"status": "Complete"}))
-    completeReq_l.sort(key=lambda x: x["timestamp"], reverse=True)
+    completeRequests = list(
+        db[viewUser['id_str']].find({"status": "Complete"}))
+    completeRequests.sort(key=lambda x: x["timestamp"], reverse=True)
+    for req in completeRequests:
+        authorUser = getinfo_id(req['author_id'])
+        req['author_scname'] = authorUser['screen_name']
+        req['author_name'] = authorUser['name']
 
     return jsonify({"html": render_template("me_ajax.html",
-                                            pendingReq_l=pendingReq_l,
-                                            completeReq_l=completeReq_l,
-                                            pendingReq_l_displayed=pendingReq_l_displayed)})
+                                            pendingRequests=pendingRequests,
+                                            pendingRequests_disp=pendingRequests_disp,
+                                            completeRequests=completeRequests)})
 
 
+@authorization_required
 @app.route("/me_ajax", methods=["POST"])
 def me_ajax_post():
-    global_username = request.cookies.get('userID')
+    viewUser = getinfo()
 
-    target_id = str(request.form.get('requests'))
-    if target_id == 'None':
+    targetId = str(request.form.get('requests'))
+    if targetId == 'None':
         return me_ajax()
 
     else:  # If target exists
-        target_req = db[global_username].find_one({"_id": ObjectId(target_id)})
+        target_req = db[viewUser['id_str']].find_one(
+            {"_id": ObjectId(targetId)})
         isSecret = target_req["isSecret"]
         isAnonymous = target_req["isAnonymous"]
         author_id = target_req["author_id"]
+        timestamp = target_req["timestamp"]
         action = str(request.form.get('request_action'))
         isntSharing = bool(request.form.get('isSharing'))
 
-        target_req.pop('_id', None)
-
         if action == "accept":
-            target_req['status'] = 'Complete'
-            db[global_username].replace_one(
-                {'_id': ObjectId(target_id)}, target_req)
+            db[viewUser['id_str']].update(
+                {"_id": ObjectId(targetId)},
+                {"$set":
+                    {
+                        'status': 'Complete'
+                    }
+                 }
+            )
         else:  # action == "discard"
-            target_req['status'] = 'Denied'
-            db[global_username].replace_one(
-                {'_id': ObjectId(target_id)}, target_req)
+            db[viewUser['id_str']].update(
+                {"_id": ObjectId(targetId)},
+                {"$unset": target_req}
+            )
 
-        post_text = ("누군가" if isAnonymous else ("@"+author_id)) + \
-            " 의 리퀘스트가 "+("완료되었어요!!" if action == "accept" else "삭제되었어요 ㅜㅜ")
+        post_text = timestamp.split('.')[0] + "에 신청된 " + \
+            ("누군가" if isAnonymous else (f"@{getinfo_id(author_id)['screen_name']} ")) + \
+            "의 리퀘스트가 "+("완료되었어요!!" if action == "accept" else "삭제되었어요...")
+
         if not isntSharing:  # If user wants to share
             twitter.post(
                 "statuses/update.json?status={text}".format(text=quote(post_text, safe='')))

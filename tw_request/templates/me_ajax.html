@@ -5,7 +5,7 @@
     <div class="row gtr-uniform">
       <div class="col-12">
         <select name="requests" id="requests">
-          {% for req in pendingReq_l_displayed %}
+          {% for req in pendingRequests_disp %}
           <option value="{{ req['_id'] }}">{{ req["message"] }}</option>
           {% endfor %}
         </select>
@@ -18,9 +18,9 @@
         <input type="radio" id="discard" value="discard" name="request_action">
         <label for="discard">삭제하기</label>
       </div>
-      <div class="col-6 col-12-small disabled">
-        <input type="checkbox" id="isSharing" name="isSharing" disabled>
-        <label for="isSharing" class="disabled">트위터에 공유하지 않기</label>
+      <div class="col-6 col-12-small">
+        <input type="checkbox" id="isSharing" name="isSharing">
+        <label for="isSharing">트위터에 공유하지 않기</label>
       </div>
       <div class="col-12">
         <ul class="actions">
@@ -35,10 +35,10 @@
 <section id="request-get" class="main">
   <h2>받은 리퀘스트</h2>
   <hr>
-  {% for req in pendingReq_l %}
+  {% for req in pendingRequests %}
   <h2>{{ req["message"] }} {% if req["isSecret"] %}<span class="icon fa-lock"></span>{% endif %}</h2>
   <p>{{ req["timestamp"][:-7] }}{% if not req.isAnonymous %}에 <a
-      href="https://twitter.com/{{ req['author_id'] }}">{{ req["author"] }}</a>님이 리퀘스트함{% endif %}</p>
+      href="https://twitter.com/{{ req['author_scname'] }}">{{ req["author_name"] }}</a>님이 리퀘스트함{% endif %}</p>
   <hr>
   {% endfor %}
 </section>
@@ -46,10 +46,10 @@
 <section id="request-complete" class="main">
   <h2>완료한 리퀘스트</h2>
   <hr>
-  {% for req in completeReq_l %}
+  {% for req in completeRequests %}
   <h2>{{ req["message"] }} {% if req["isSecret"] %}<span class="icon fa-lock"></span>{% endif %}</h2>
   <p>{{ req["timestamp"][:-7] }}{% if not req.isAnonymous %}에 <a
-      href="https://twitter.com/{{ req['author_id'] }}">{{ req["author"] }}</a>님이 리퀘스트함{% endif %}</p>
+      href="https://twitter.com/{{ req['author_scname'] }}">{{ req["author_name"] }}</a>님이 리퀘스트함{% endif %}</p>
   <hr>
   {% endfor %}
 </section>
