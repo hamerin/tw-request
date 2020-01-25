@@ -254,7 +254,7 @@ def me_ajax_post():
     else:  # If target exists
         target_req = db[viewUser['id_str']].find_one(
             {"_id": ObjectId(targetId)})
-        isSecret = target_req["isSecret"]
+        # isSecret = target_req["isSecret"]
         isAnonymous = target_req["isAnonymous"]
         author_id = target_req["author_id"]
         timestamp = target_req["timestamp"]
