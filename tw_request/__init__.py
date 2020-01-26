@@ -41,46 +41,48 @@ def authorization_required(fun):
 
 
 def getinfo_id(id) -> dict:
-    try:
-        ret = cache['twd'].find_one({"id_str": str(id)})
-        isCreated = bool(ret)
+    ret = cache['twd'].find_one({"id_str": str(id)})
+    isCreated = bool(ret)
+    
+    if isCreated:
+        _id = ret['_id']
 
-        if not ret or time.time() - ret['_timestamp'] > 86400:
-            ret = twitter.get(
-                f"users/show.json?user_id={id}").json()
-            ret['profile_image_url_https'] = ret['profile_image_url_https'].replace(
-                '_normal', '')
-            ret['_timestamp'] = time.time()
+    if not isCreated or time.time() - ret['_timestamp'] > 86400:
+        ret = twitter.get(
+            f"users/show.json?user_id={id}").json()
+        ret['profile_image_url_https'] = ret['profile_image_url_https'].replace(
+            '_normal', '')
+        ret['_timestamp'] = time.time()
 
-        if isCreated:
-            cache['twd'].update({'_id': ObjectId(ret['_id'])}, {'$set': ret})
-        else:
-            cache['twd'].insert_one(ret)
-        return ret
-    except:
-        return {}
 
+    if isCreated:
+        cache['twd'].update({'_id': _id}, {'$set': ret})
+    else:
+        cache['twd'].insert_one(ret)
+        
+    return ret
+    
 
 def getinfo_name(name) -> dict:
-    try:
-        ret = cache['twd'].find_one({"screen_name": name})
-        isCreated = bool(ret)
+    ret = cache['twd'].find_one({"screen_name": name})
+    isCreated = bool(ret)
 
-        if not ret or time.time() - ret['_timestamp'] > 86400:
-            ret = twitter.get(
-                f"users/show.json?screen_name={name}").json()
-            ret['profile_image_url_https'] = ret['profile_image_url_https'].replace(
-                '_normal', '')
-            ret['_timestamp'] = time.time()
+    if isCreated:
+        _id = ret['_id']
 
-        if isCreated:
-            cache['twd'].update({'_id': ObjectId(ret['_id'])}, {'$set': ret})
-        else:
-            cache['twd'].insert_one(ret)
-        return ret
-    except:
-        return {}
+    if not isCreated or time.time() - ret['_timestamp'] > 86400:
+        ret = twitter.get(
+            f"users/show.json?screen_name={name}").json()
+        ret['profile_image_url_https'] = ret['profile_image_url_https'].replace(
+            '_normal', '')
+        ret['_timestamp'] = time.time()
 
+    if isCreated:
+        cache['twd'].update({'_id': _id}, {'$set': ret})
+    else:
+        cache['twd'].insert_one(ret)
+
+    return ret
 
 @authorization_required
 def getinfo() -> dict:
@@ -93,8 +95,8 @@ def getinfo() -> dict:
             account = twitter.get("account/verify_credentials.json")
             assert account.ok
 
-            session['userid'] = userinfo['id']
-            userinfo = getinfo_id(account.json()["id"])
+            session['userid'] = account.json()['id']
+            userinfo = getinfo_id(account.json()['id'])
 
         assert userinfo
         return userinfo
