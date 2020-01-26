@@ -148,7 +148,7 @@ def reveal_user(username):
                                view_name=viewUser['name'])
 
     except AssertionError:  # If user not exists
-        abort(400)
+        abort(404)
 
 
 @authorization_required
