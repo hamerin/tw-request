@@ -93,6 +93,7 @@ def getinfo() -> dict:
             account = twitter.get("account/verify_credentials.json")
             assert account.ok
 
+            session['userid'] = userinfo['id']
             userinfo = getinfo_id(account.json()["id"])
 
         assert userinfo
@@ -105,11 +106,7 @@ def getinfo() -> dict:
 def intro():
     if twitter.authorized:
         userinfo = getinfo()
-        if not 'userid' in session:
-            session['userid'] = userinfo["id"]
-
         return redirect(f"/user/{userinfo['screen_name']}")
-
     else:
         return render_template('index.html')
 
