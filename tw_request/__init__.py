@@ -147,7 +147,7 @@ def reveal_user(username):
                                view_scname=viewUser['screen_name'],
                                view_name=viewUser['name'])
 
-    except AssertionError:  # If user not exists
+    except:  # If user not exists
         abort(404)
 
 
