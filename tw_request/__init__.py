@@ -56,6 +56,7 @@ def getinfo_id(id) -> dict:
 
 
     if isCreated:
+        ret.pop('_id')
         cache['twd'].update({'_id': _id}, {'$set': ret})
     else:
         cache['twd'].insert_one(ret)
