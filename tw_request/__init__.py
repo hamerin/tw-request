@@ -14,16 +14,19 @@ app.secret_key = "supersekrit"
 
 f = open('tw_request/.env', 'r')
 
+keyDict = dict()
+for s in f.readlines():
+    k, v = s.split('=',1)
+    k = k.strip()
+    v = v.strip()
+    keyDict[k] = v
 
-def getKey(): return f.readline().split('=',1)[1].strip()
-
-
-api_key = getKey()
-api_secret = getKey()
+api_key = keyDict['TWITTER_API_KEY']
+api_secret = keyDict['TWITTER_API_SECRET']
 blueprint = make_twitter_blueprint(api_key=api_key, api_secret=api_secret)
 app.register_blueprint(blueprint, url_prefix="/login")
 
-client = pymongo.MongoClient(getKey(),
+client = pymongo.MongoClient(keyDict['MONGODB_URL'],
                              connect=False,
                              ssl_cert_reqs=ssl.CERT_NONE)
 db = client.main
