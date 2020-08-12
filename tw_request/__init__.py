@@ -16,7 +16,7 @@ f = open('tw_request/.env', 'r')
 
 keyDict = dict()
 for s in f.readlines():
-    k, v = s.split('=',1)
+    k, v = s.split('=', 1)
     k = k.strip()
     v = v.strip()
     keyDict[k] = v
@@ -46,7 +46,7 @@ def authorization_required(fun):
 def getinfo_id(id) -> dict:
     ret = cache['twd'].find_one({"id_str": str(id)})
     isCreated = bool(ret)
-    
+
     if isCreated:
         _id = ret['_id']
 
@@ -57,15 +57,15 @@ def getinfo_id(id) -> dict:
             '_normal', '')
         ret['_timestamp'] = time.time()
 
-
     if isCreated:
-        ret.pop('_id')
+        if '_id' in ret:
+            ret.pop('_id')
         cache['twd'].update({'_id': _id}, {'$set': ret})
     else:
         cache['twd'].insert_one(ret)
-        
+
     return ret
-    
+
 
 def getinfo_name(name) -> dict:
     ret = cache['twd'].find_one({"screen_name": name})
@@ -82,11 +82,14 @@ def getinfo_name(name) -> dict:
         ret['_timestamp'] = time.time()
 
     if isCreated:
+        if '_id' in ret:
+            ret.pop('_id')
         cache['twd'].update({'_id': _id}, {'$set': ret})
     else:
         cache['twd'].insert_one(ret)
 
     return ret
+
 
 @authorization_required
 def getinfo() -> dict:
